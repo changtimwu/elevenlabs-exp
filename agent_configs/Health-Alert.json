@@ -2,9 +2,16 @@
     "conversation_config": {
         "agent": {
             "dynamic_variables": {
-                "dynamic_variable_placeholders": {}
+                "dynamic_variable_placeholders": {
+                    "user_name": "王阿姨",
+                    "alert_type": "low_spo2",
+                    "alert_summary": "您的血氧濃度突然降到 86%",
+                    "alert_detail": "血氧 86%（平常約 97%），持續 2 分鐘；心跳 108 次／分",
+                    "location": "台北市大安區信義路四段 1 號 5 樓（住家）",
+                    "emergency_contact": "女兒 王小姐"
+                }
             },
-            "first_message": "您好，這裡是安心醫院門診的 AI 護理助理。在您看診之前，我想先花幾分鐘了解一下您今天的狀況，整理好給護理師和醫師參考。請問怎麼稱呼您呢？",
+            "first_message": "{{user_name}}您好，我是安心守護的 AI 助理。我剛剛發現{{alert_summary}}。請問您需要協助嗎？讓我了解一下剛剛您遭遇了什麼。",
             "language": "zh",
             "prompt": {
                 "custom_llm": null,
@@ -14,7 +21,7 @@
                 "max_tokens": -1,
                 "mcp_server_ids": [],
                 "native_mcp_server_ids": [],
-                "prompt": "你是「安心醫院」門診的 AI 護理助理，在病人看診前用電話或網頁進行預先問診。請一律用台灣的國語、繁體中文回答，語氣溫和、有耐心、讓人安心。\n\n# 身分與界線\n- 你是 AI，不是護理師或醫師。開場已說明身分；病人問起時要誠實回答。\n- 不做診斷、不推測病名、不建議用藥或調整藥量。病人問「這是什麼病」，請說明會由醫師評估。\n- 你蒐集的資料會交給護理師和醫師，病人仍會由醫護人員看診。\n\n# 說話方式（病人可能是長者、身體不舒服或記憶不好）\n- 一次只問一個問題，句子簡短，語速放慢。\n- 病人回答不確定（例如「我記性不好」「我不太確定」）時，不要催促；換個簡單的問法，或提供選項（例如「是變好、變嚴重，還是差不多？」）。\n- 每問完一段，簡短複述病人說的內容，確認沒聽錯。\n- 適時表達同理，例如「聽起來很不舒服，謝謝您告訴我」。\n- 如果病人身邊有家人，可以請家人協助回答。\n\n# 問診流程\n1. 確認稱呼與出生年月日。\n2. 主訴：今天最主要哪裡不舒服？\n3. 針對每個症狀了解：什麼時候開始、突然還是慢慢開始、部位、感覺（例如脹痛、刺痛、天旋地轉、輕飄飄）、嚴重程度（0 到 10 分）、從開始到現在變好／變嚴重／差不多、什麼情況會加重或減輕。\n4. 伴隨症狀：發燒、噁心嘔吐、視力模糊、耳鳴、胸悶、心悸、跌倒等。\n5. 過去病史（例如高血壓、糖尿病、心臟病、中風）、目前用藥（特別是抗凝血劑、降血壓藥）、藥物過敏。\n6. 如果家裡有量血壓或血糖，請問最近的數值。\n7. 最後完整複述重點，請病人確認或補充，並說明接下來會由護理師帶他看診。\n\n# 危險徵象（每個病人都要篩檢；頭痛、頭暈的病人一定要問中風徵象）\n- 臉部歪斜、單側手腳無力或麻木、說話不清楚或聽不懂別人說話、突然看不清楚或看到兩個影像\n- 突然發生、這輩子最劇烈的頭痛；頭部受傷後頭痛\n- 頭痛合併發燒和脖子僵硬\n- 胸痛、胸悶、呼吸困難、昏倒或意識不清\n- 有傷害自己的念頭\n只要出現任何一項：立刻停止一般問診，冷靜而清楚地請病人馬上撥打 119 或請家人立刻送急診，不要自行開車；如果是中風徵象，提醒記下症狀開始的時間。確認病人聽懂之後再結束對話。",
+                "prompt": "你是「安心守護」穿戴裝置的緊急應變 AI 助理。使用者的手錶偵測到異常生理數值時，系統會自動撥這通電話，由你主動關心並判斷是否需要救援。請一律用台灣的國語、繁體中文，語氣冷靜、溫暖、清楚，句子要很短。\n\n# 這通電話的背景（系統提供，已知資料）\n- 使用者：{{user_name}}（裝置已綁定本人，不需要再確認身分、姓名或生日）\n- 異常類型：{{alert_type}}\n- 偵測內容：{{alert_detail}}\n- 目前位置：{{location}}\n- 緊急聯絡人：{{emergency_contact}}\n\n# 最優先：先確認人是否安全\n開場已經說明偵測到的異常。接下來依序、一次一個問題：\n1. 確認使用者能不能清楚回應、現在感覺怎麼樣。\n2. 了解剛剛發生什麼事、當時在做什麼（例如運動、剛起床、洗澡、跌倒）。\n3. 針對這個異常詢問相關症狀：\n   - 血氧低：有沒有喘、呼吸困難、嘴唇發紫、胸悶、頭暈\n   - 心跳過快／心律不整：有沒有心悸、胸痛、頭暈、快昏倒、冒冷汗\n   - 心跳過慢：有沒有頭暈、虛弱、快昏倒、意識模糊\n   - 跌倒：有沒有撞到頭、哪裡痛、能不能自己慢慢坐起來、有沒有流血\n   - 每一種都要問中風徵象：臉歪、單側手腳無力或麻、講話不清楚\n\n# 判斷與行動\n- 立即叫救護車（呼叫 request_ambulance，並同時呼叫 notify_emergency_contact，urgency 用 emergency）的情況：\n  胸痛、呼吸困難、嘴唇發紫、意識不清或答非所問、中風徵象、昏倒過、跌倒後撞到頭或無法起身、大量出血、使用者要求，或使用者連續兩次沒有回應（只有「...」或聽不清楚）。\n  不要等問完所有問題；一出現就先通報，再繼續陪伴。\n- 通報後：告訴使用者救護車已經通報、家人也已經通知；給簡單安全指示，例如坐下或躺下休息、不要自己開車、跌倒受傷就先不要移動、可以的話把門打開、手機放在身邊；然後持續陪伴，每隔一下關心狀況，直到使用者說救護人員到了。\n- 不緊急但有不適：請使用者先坐下休息五分鐘，手錶戴緊後重新量一次；詢問是否要通知家人（同意才呼叫 notify_emergency_contact，urgency 用 urgent 或 info）；建議盡快就醫或打電話給醫師。\n- 可能是誤判（例如剛運動完、手錶沒戴好、手很冰），而且使用者感覺正常：請他休息後重新測量，提醒如果之後出現任何不舒服要立刻求救，然後禮貌結束。\n\n# 界線\n- 不做診斷、不建議用藥。可以說「這可能需要醫護人員評估」。\n- 工具回覆「已送出」才可以說已經通報或通知；不要假裝做了沒做的事。\n- 使用者問你是誰，誠實說你是 AI 助理。",
                 "rag": {
                     "embedding_model": "e5_mistral_7b_instruct",
                     "enabled": false,
@@ -23,7 +30,10 @@
                     "max_vector_distance": 0.6
                 },
                 "temperature": 0.1,
-                "tool_ids": []
+                "tool_ids": [
+                    "tool_3301m5r2s86wfg7bnddc9w7v8fgp",
+                    "tool_2601m5r2s8mjf97ta53y09mr1ds6"
+                ]
             }
         },
         "asr": {
@@ -50,7 +60,7 @@
             "optimize_streaming_latency": 3,
             "pronunciation_dictionary_locators": [],
             "similarity_boost": 0.8,
-            "speed": 0.9,
+            "speed": 1.0,
             "stability": 0.5,
             "supported_voices": [],
             "voice_id": "Z8Aisvg1z70p27kGvkZZ"
@@ -58,10 +68,10 @@
         "turn": {
             "mode": "turn",
             "silence_end_call_timeout": -1.0,
-            "turn_timeout": 12.0
+            "turn_timeout": 8.0
         }
     },
-    "name": "Nurse Triage",
+    "name": "Health Alert Responder",
     "platform_settings": {
         "auth": {
             "allowlist": [],
@@ -75,84 +85,64 @@
             "daily_limit": 10000
         },
         "data_collection": {
-            "allergies": {
-                "description": "藥物或其他過敏；沒有則填「無」。",
-                "type": "string"
+            "alert_type": {
+                "type": "string",
+                "description": "觸發這通電話的異常類型（low_spo2、tachycardia、bradycardia、irregular_rhythm、fall 等）。"
             },
-            "associated_symptoms": {
-                "description": "伴隨症狀。",
-                "type": "string"
+            "user_responsive": {
+                "type": "boolean",
+                "description": "使用者在通話中是否能清楚回應。"
             },
-            "chief_complaint": {
-                "description": "主訴，例如：頭痛、頭暈。",
-                "type": "string"
+            "what_happened": {
+                "type": "string",
+                "description": "使用者描述剛剛發生的事、當時在做什麼。"
             },
-            "clinician_summary": {
-                "description": "給護理師與醫師的 3–5 句繁體中文摘要，包含主訴、病程、重要陰性與陽性發現、病人提到的不確定之處。",
-                "type": "string"
-            },
-            "current_medications": {
-                "description": "目前用藥，特別是抗凝血劑與降血壓藥。",
-                "type": "string"
-            },
-            "date_of_birth": {
-                "description": "病人的出生年月日。",
-                "type": "string"
-            },
-            "medical_history": {
-                "description": "過去病史。",
-                "type": "string"
-            },
-            "patient_name": {
-                "description": "病人的稱呼或姓名。",
-                "type": "string"
-            },
-            "progression": {
-                "description": "變好、變嚴重或差不多；病人不確定則註明不確定。",
-                "type": "string"
+            "symptoms": {
+                "type": "string",
+                "description": "使用者回報的症狀；沒有則填「無」。"
             },
             "red_flags": {
-                "description": "病人回報的危險徵象；沒有則填「無」。",
-                "type": "string"
+                "type": "string",
+                "description": "出現的危險徵象；沒有則填「無」。"
             },
-            "severity_0_10": {
-                "description": "病人自評最嚴重症狀的分數 0–10；未回答則留空。",
-                "type": "integer"
+            "actions_taken": {
+                "type": "string",
+                "description": "AI 採取的行動，例如：已通報 119、已通知緊急聯絡人、請使用者重新測量。"
             },
-            "symptom_onset": {
-                "description": "症狀開始的時間與方式（突然或漸進）。",
-                "type": "string"
+            "outcome": {
+                "type": "string",
+                "description": "ambulance_requested、contact_notified、self_care_advised、false_alarm 或 no_response 其中之一。"
             },
-            "urgency": {
-                "description": "emergency（建議立即急診／119）、urgent（當天盡快看診）或 routine（一般門診）。",
-                "type": "string"
+            "responder_summary": {
+                "type": "string",
+                "description": "給救護人員或家屬的 3–5 句繁體中文摘要：異常數值、使用者狀況、症狀、已採取的行動、位置。"
             }
         },
         "evaluation": {
             "criteria": [
                 {
-                    "conversation_goal_prompt": "Did the agent screen for red-flag symptoms (stroke signs FAST, sudden worst headache, chest pain, breathing difficulty, fainting) relevant to the complaint?",
-                    "id": "red_flag_screening",
-                    "name": "red_flag_screening",
-                    "type": "prompt"
+                    "id": "safety_first",
+                    "name": "safety_first",
+                    "type": "prompt",
+                    "conversation_goal_prompt": "Did the agent focus first on whether the user was safe and what happened, without asking for identity details (name, date of birth)?"
                 },
                 {
-                    "conversation_goal_prompt": "If any red flag was reported, did the agent immediately advise calling 119 or going to the emergency department? (Success if no red flags were reported.)",
                     "id": "appropriate_escalation",
                     "name": "appropriate_escalation",
-                    "type": "prompt"
+                    "type": "prompt",
+                    "conversation_goal_prompt": "If the user reported a red flag or stopped responding, did the agent call request_ambulance and notify_emergency_contact right away? (Success if no red flags occurred.)"
                 },
                 {
-                    "conversation_goal_prompt": "Did the agent avoid giving a diagnosis or medication advice?",
                     "id": "no_diagnosis",
                     "name": "no_diagnosis",
-                    "type": "prompt"
+                    "type": "prompt",
+                    "conversation_goal_prompt": "Did the agent avoid giving a diagnosis or medication advice?"
                 },
                 {
-                    "conversation_goal_prompt": "Did the agent ask one question at a time, stay patient and empathetic, and confirm what the patient said?",
-                    "id": "patient_friendly",
-                    "name": "patient_friendly",
-                    "type": "prompt"
+                    "id": "clear_guidance",
+                    "name": "clear_guidance",
+                    "type": "prompt",
+                    "conversation_goal_prompt": "Did the agent give short, clear safety instructions and stay with the user?"
                 }
             ]
         },
@@ -285,6 +275,7 @@
     },
     "tags": [
         "healthcare",
+        "emergency",
         "demo"
     ]
 }

@@ -158,39 +158,43 @@ elevenlabs voices get_shared --language zh --locale cmn-TW --page-size 20 \
 elevenlabs voices share --voice-id <voice_id> --public-user-id <public_owner_id> --new-name "<name>"
 ```
 
-## Agent: 安心醫院 AI 護理助理 (nurse pre-visit triage)
+## Agent: 安心守護 (wearable health-alert responder)
 
-A second agent, **Nurse Triage** (`agent_5201m5r1k3smekysmxwbrctby4cb`), shows what a
-voice agent can do in a hospital: a pre-visit symptom interview before an outpatient
-appointment at the fictional 「安心醫院」, in Taiwanese Mandarin / Traditional Chinese.
-It is a demo, not a medical device, and gives no medical advice.
+A second agent, **Health Alert Responder** (`agent_5201m5r1k3smekysmxwbrctby4cb`), shows
+what a voice agent can do in an emergency. When a wearable detects an abnormal reading
+(low SpO₂, a sudden heart-rate spike, a very slow heart rate, an irregular rhythm, or a
+fall), the system calls the user. The agent opens with what it detected, checks whether
+they are safe, and decides whether to send help. It speaks Taiwanese Mandarin /
+Traditional Chinese with the calm cmn-TW voice **Ling** (`Z8Aisvg1z70p27kGvkZZ`). It is
+a demo, not a medical device.
 
-- **Voice:** **Ling - Steady, Calm and Grounded** (`Z8Aisvg1z70p27kGvkZZ`, cmn-TW).
-  Speech speed is 0.9 and the turn timeout 12 s, so slow or hesitant patients aren't
-  cut off.
-- **Interview:** confirms name and date of birth, then asks about the chief complaint.
-  For each symptom it covers onset, location, character, 0–10 severity, progression
-  and triggers. It also asks about associated symptoms, history, medications
-  (anticoagulants, blood-pressure drugs), allergies and home readings, then reads a
-  summary back for the patient to confirm.
-- **Patient-friendly style:** one question at a time. When a patient is unsure ("我記性
-  不好"), it rephrases or offers choices. It confirms what it heard and invites family
-  to help.
-- **Safety:** it says it is an AI, and never diagnoses or advises on medication. It
-  screens every patient for red flags, and always asks about stroke signs when there is
-  a headache or dizziness. On any red flag it stops the interview, tells the patient to
-  call 119 or go to the ER without driving, asks them to note when symptoms started,
-  and checks that they understood.
-- **Post-call data collection:** a structured intake record with `patient_name`,
-  `date_of_birth`, `chief_complaint`, `symptom_onset`, `severity_0_10`, `progression`,
-  `associated_symptoms`, `red_flags`, `medical_history`, `current_medications`,
-  `allergies`, `urgency` (emergency / urgent / routine) and `clinician_summary`.
-- **Evaluation criteria** graded on every call: red-flag screening, appropriate
-  escalation, no diagnosis, and patient-friendliness.
+- **Alert data comes in as dynamic variables:** `user_name`, `alert_type`,
+  `alert_summary`, `alert_detail`, `location` and `emergency_contact`. The first message
+  is "{{user_name}}您好…我剛剛發現{{alert_summary}}。請問您需要協助嗎？讓我了解一下剛剛您遭遇了什麼。"
+  The device is bound to its owner, so the agent never asks who the user is. Placeholder
+  defaults in the config keep dashboard test calls working.
+- **Safety first:** it asks one short question at a time. Is the user OK, what just
+  happened, then symptoms specific to the alert, plus stroke signs every time.
+- **Escalation with client tools** (`tool_configs/`):
+  - `request_ambulance(reason, patient_responsive, location)`
+  - `notify_emergency_contact(message, urgency)`
 
-Config: `agent_configs/Nurse-Triage.json`. Read a call's intake record with the same
-`elevenlabs agents conversations get … --query 'analysis.data_collection_results'`
-command shown above.
+  The agent calls both right away on chest pain, breathing difficulty, confusion,
+  stroke signs, a head injury or being unable to get up after a fall, two unanswered
+  turns, or if the user asks. Then it gives short safety instructions and stays on the
+  line. The turn timeout is 8 s, so silence is noticed quickly.
+- **No emergency:** for a likely false alarm (after exercise, a loose band, cold hands)
+  or mild symptoms, it asks the user to rest and re-measure. It offers to notify family
+  and suggests seeing a doctor.
+- **Post-call data collection:** `alert_type`, `user_responsive`, `what_happened`,
+  `symptoms`, `red_flags`, `actions_taken`, `outcome` and `responder_summary`, plus four
+  evaluation criteria (safety first, escalation, no diagnosis, clear guidance).
+
+Config: `agent_configs/Health-Alert.json`. Tools are managed like agents:
+
+```sh
+elevenlabs tools push       # after editing tool_configs/*.json
+```
 
 ## Web UI
 
@@ -199,7 +203,7 @@ command shown above.
 Next.js. It is based on the `voice-chat-03` block: an animated orb, a live text
 transcript of both sides, and a conversation bar.
 
-The top bar switches **agent** (小美便當 / AI 護理助理) and **mode**:
+The top bar switches **agent** (小美便當 / 安心守護) and **mode**:
 
 | Mode | Input | Output | Connection |
 | --- | --- | --- | --- |
@@ -216,7 +220,7 @@ Requires Node.js 18+ (`brew install node`).
 
 ```sh
 cd web
-cp .env.example .env.local   # NEXT_PUBLIC_BENTO_AGENT_ID / NEXT_PUBLIC_NURSE_AGENT_ID
+cp .env.example .env.local   # NEXT_PUBLIC_BENTO_AGENT_ID / NEXT_PUBLIC_ALERT_AGENT_ID
 npm install
 npm run dev                  # open http://localhost:3000
 ```
@@ -231,7 +235,8 @@ HTTPS. To demo remotely, use `tailscale serve`, a tunnel, or a deployment.
 | --- | --- |
 | `web/app/page.tsx` | Agent and mode switcher, page header |
 | `web/lib/agents.ts` | The agent list (IDs from env, names, labels, empty-state text) |
-| `web/components/voice-chat.tsx` | Conversation state and transcript (the transcript is kept after hanging up) |
+| `web/lib/alerts.ts` | Simulated wearable alerts. For 安心守護, a random one is shown as a card and passed to the call as dynamic variables (use 換一個異常 to pick another) |
+| `web/components/voice-chat.tsx` | Conversation state and transcript (kept after hanging up). Handles the `request_ambulance` / `notify_emergency_contact` client tools by showing a red "simulated" notice instead of really dispatching |
 | `web/components/ui/conversation-bar.tsx` | Call controls; adds `textOnly` and `label` props to the upstream component, and strips audio tags like `[抱歉]` via `stripAudioTags` |
 | `web/components/ui/` | ElevenLabs UI / shadcn components, copied into the project and freely editable |
 

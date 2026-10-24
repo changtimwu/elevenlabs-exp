@@ -1,8 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { ConversationProvider, useConversation } from "@elevenlabs/react"
-import { CheckIcon, CopyIcon } from "lucide-react"
+import {
+  ConversationProvider,
+  useConversation,
+  useConversationClientTool,
+} from "@elevenlabs/react"
+import { CheckIcon, CopyIcon, SirenIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -25,7 +29,8 @@ import {
 } from "@/components/ui/tooltip"
 
 interface ChatMessage {
-  role: "user" | "assistant"
+  /** "event" = an action the agent took through a client tool */
+  role: "user" | "assistant" | "event"
   content: string
 }
 
@@ -37,6 +42,8 @@ export interface VoiceChatProps {
   label?: string
   emptyTitle?: string
   emptyDescription?: string
+  /** Values for {{placeholders}} in the agent's first message and prompt */
+  dynamicVariables?: Record<string, string | number | boolean>
 }
 
 export function VoiceChat(props: VoiceChatProps) {
@@ -53,9 +60,34 @@ function VoiceChat03({
   label,
   emptyTitle = "Start a conversation",
   emptyDescription = "Tap the phone button or type a message",
+  dynamicVariables,
 }: VoiceChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
+
+  const addEvent = (content: string) =>
+    setMessages((prev) => [...prev, { role: "event", content }])
+
+  // Client tools of the Health Alert Responder. This demo only shows them in the
+  // transcript; a real deployment would dispatch 119 / message the contact here.
+  useConversationClientTool(
+    "request_ambulance",
+    (params: { reason?: string; location?: string }) => {
+      addEvent(
+        `已通報 119 請求救護車（示範模擬，未實際撥打）\n原因：${params.reason ?? ""}\n地點：${params.location ?? ""}`
+      )
+      return "已送出"
+    }
+  )
+  useConversationClientTool(
+    "notify_emergency_contact",
+    (params: { message?: string; urgency?: string }) => {
+      addEvent(
+        `已通知緊急聯絡人（示範模擬，${params.urgency ?? ""}）\n「${params.message ?? ""}」`
+      )
+      return "已送出"
+    }
+  )
 
   // The transcript is kept after hanging up so it can still be read; the parent
   // remounts this component (via `key`) to start fresh.
@@ -85,6 +117,18 @@ function VoiceChat03({
                 />
               ) : (
                 messages.map((message, index) => {
+                  if (message.role === "event") {
+                    return (
+                      <div
+                        key={index}
+                        role="status"
+                        className="flex gap-2 rounded-lg border border-red-300 bg-red-50 p-3 text-sm whitespace-pre-wrap text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-100"
+                      >
+                        <SirenIcon className="mt-0.5 size-4 shrink-0" />
+                        <span>{message.content}</span>
+                      </div>
+                    )
+                  }
                   return (
                     <div key={index} className="flex w-full flex-col gap-1">
                       <Message from={message.role}>
@@ -156,6 +200,7 @@ function VoiceChat03({
               agentId={agentId}
               textOnly={textOnly}
               label={label}
+              dynamicVariables={dynamicVariables}
               onSendMessage={(message) => {
                 const userMessage: ChatMessage = {
                   role: "user",

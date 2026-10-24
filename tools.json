@@ -1,3 +1,14 @@
 {
-    "tools": []
+    "tools": [
+        {
+            "type": "client",
+            "config": "tool_configs/request_ambulance.json",
+            "id": "tool_3301m5r2s86wfg7bnddc9w7v8fgp"
+        },
+        {
+            "type": "client",
+            "config": "tool_configs/notify_emergency_contact.json",
+            "id": "tool_2601m5r2s8mjf97ta53y09mr1ds6"
+        }
+    ]
 }

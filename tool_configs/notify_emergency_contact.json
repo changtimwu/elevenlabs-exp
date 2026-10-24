@@ -1,0 +1,33 @@
+{
+    "description": "通知使用者預先設定的緊急聯絡人 {{emergency_contact}}。需要叫救護車時一併使用；狀況不緊急但使用者同意、或使用者無法確定自己是否沒事時也可以使用。",
+    "dynamic_variables": {
+        "dynamic_variable_placeholders": {}
+    },
+    "expects_response": true,
+    "name": "notify_emergency_contact",
+    "parameters": {
+        "description": "Parameters for the client tool",
+        "type": "object",
+        "properties": {
+            "message": {
+                "type": "string",
+                "description": "要傳給緊急聯絡人的簡短訊息（繁體中文），說明發生什麼事、目前狀況、是否已叫救護車"
+            },
+            "urgency": {
+                "type": "string",
+                "enum": [
+                    "emergency",
+                    "urgent",
+                    "info"
+                ],
+                "description": "emergency：已叫救護車；urgent：需要家人盡快過去；info：只是告知"
+            }
+        },
+        "required": [
+            "message",
+            "urgency"
+        ]
+    },
+    "response_timeout_secs": 10,
+    "type": "client"
+}

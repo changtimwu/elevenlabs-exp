@@ -54,6 +54,11 @@ export interface ConversationBarProps {
    * Label shown in the waveform area while disconnected
    */
   label?: string
+
+  /**
+   * Dynamic variables passed to the agent when the session starts
+   */
+  dynamicVariables?: Record<string, string | number | boolean>
 }
 
 export const ConversationBar = React.forwardRef<
@@ -67,6 +72,7 @@ export const ConversationBar = React.forwardRef<
     onSendMessage,
     textOnly = false,
     label = "Customer Support",
+    dynamicVariables,
   } = props
   const { status } = useConversationStatus()
   const { startSession, endSession, sendUserMessage, sendContextualUpdate } =
@@ -98,6 +104,7 @@ export const ConversationBar = React.forwardRef<
           connectionType: "websocket",
           textOnly: true,
           stripAudioTags: true,
+          dynamicVariables,
         })
         return
       }
@@ -108,11 +115,12 @@ export const ConversationBar = React.forwardRef<
         agentId,
         connectionType: "webrtc",
         stripAudioTags: true,
+        dynamicVariables,
       })
     } catch (error) {
       console.error("Error starting conversation:", error)
     }
-  }, [getMicStream, agentId, startSession, textOnly])
+  }, [getMicStream, agentId, startSession, textOnly, dynamicVariables])
 
   const handleEndSession = React.useCallback(() => {
     endSession()

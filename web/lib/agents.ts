@@ -6,6 +6,8 @@ export interface AgentInfo {
   label: string
   emptyTitle: string
   emptyDescription: { voice: string; text: string }
+  /** Start each call with a random simulated wearable alert (see alerts.ts) */
+  simulatedAlerts?: boolean
 }
 
 export const AGENTS: AgentInfo[] = [
@@ -22,15 +24,17 @@ export const AGENTS: AgentInfo[] = [
     },
   },
   {
-    key: "nurse",
-    agentId: process.env.NEXT_PUBLIC_NURSE_AGENT_ID!,
-    name: "安心醫院 · 門診預先問診",
-    subtitle: "AI 護理助理（示範用，非醫療建議；緊急狀況請撥 119）",
-    label: "AI 護理助理",
-    emptyTitle: "開始預先問診",
+    key: "alert",
+    agentId: process.env.NEXT_PUBLIC_ALERT_AGENT_ID!,
+    name: "安心守護 · 穿戴裝置緊急應變",
+    subtitle:
+      "手錶偵測到異常時主動來電（示範用，非醫療建議；緊急狀況請撥 119）",
+    label: "安心守護",
+    emptyTitle: "手錶偵測到異常",
     emptyDescription: {
-      voice: "按下電話按鈕，描述您今天哪裡不舒服",
-      text: "輸入文字，描述您今天哪裡不舒服",
+      voice: "按下電話按鈕接聽 AI 助理的關心來電",
+      text: "AI 助理正在連線…",
     },
+    simulatedAlerts: true,
   },
 ]

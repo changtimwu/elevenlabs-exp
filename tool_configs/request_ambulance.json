@@ -1,0 +1,33 @@
+{
+    "description": "通報 119 請求救護車。當使用者有危險徵象（胸痛、呼吸困難、意識不清、中風徵象、跌倒後無法起身或受傷、持續沒有回應）或使用者要求時立即使用，不要等問完所有問題。",
+    "dynamic_variables": {
+        "dynamic_variable_placeholders": {}
+    },
+    "expects_response": true,
+    "name": "request_ambulance",
+    "parameters": {
+        "description": "Parameters for the client tool",
+        "type": "object",
+        "properties": {
+            "reason": {
+                "type": "string",
+                "description": "簡短說明通報原因，包含手錶偵測到的異常與使用者描述的症狀"
+            },
+            "patient_responsive": {
+                "type": "boolean",
+                "description": "使用者目前是否能清楚回應"
+            },
+            "location": {
+                "type": "string",
+                "description": "使用者所在位置；預設使用 {{location}}，使用者有更正就用更正後的地點"
+            }
+        },
+        "required": [
+            "reason",
+            "patient_responsive",
+            "location"
+        ]
+    },
+    "response_timeout_secs": 10,
+    "type": "client"
+}
