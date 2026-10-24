@@ -85,6 +85,55 @@ elevenlabs models list --human
 
 Every command accepts `--help`; add `--dry-run` to validate a request without sending it.
 
+## Agent: Mandarin customer service
+
+This folder is also an ElevenLabs agents project (created with `elevenlabs agents init`).
+It holds one conversational agent, **Mandarin Customer Service**
+(`agent_3601m5qfnf5pf1g8wg5jrwn64pdk`), built from the `customer-service` template:
+
+- Language `zh`; the system prompt makes it answer in Mandarin (Simplified Chinese)
+  as 小美, a patient customer-service rep
+- Greeting: 您好，欢迎致电客服中心，我是小美。请问有什么可以帮您？
+- Voice: premade **Sarah** (`EXAVITQu4vr4xnSDxMaL`), verified for Chinese and usable on
+  the free plan
+
+Talk to it in the browser:
+<https://elevenlabs.io/app/talk-to?agent_id=agent_3601m5qfnf5pf1g8wg5jrwn64pdk>
+
+Project layout:
+
+| Path | Purpose |
+| --- | --- |
+| `agents.json` | Maps each agent to its config file and ElevenLabs ID |
+| `agent_configs/Mandarin-Customer-Service.json` | Full agent config (prompt, voice, LLM, …) |
+| `tools.json`, `tests.json` | Tool and test registries (empty for now) |
+
+Change the agent by editing its config, then push:
+
+```sh
+elevenlabs agents push               # upload local configs to ElevenLabs
+elevenlabs agents status             # compare local configs with ElevenLabs
+elevenlabs agents pull               # fetch changes made in the web dashboard
+```
+
+Create another agent from a template:
+
+```sh
+elevenlabs agents templates list
+elevenlabs agents add "My Agent" --template customer-service
+```
+
+Using a library voice: on the free plan, voices from the ElevenLabs voice library
+can't be used through the API, so the agent uses a premade voice. On a paid plan you
+can switch to a native Mandarin voice such as "Kathy - Mandarin"
+(`GE494ib77Hxb5fJC33Ib`, already added to the account) by setting `voice_id` in the
+agent config and running `elevenlabs agents push`. Find other Mandarin voices with:
+
+```sh
+elevenlabs voices get_shared --language zh --page-size 15 \
+  --query 'voices[].[voice_id,name,locale]' --format table
+```
+
 ## Notes
 
 - The key is passed explicitly via `ElevenLabs(api_key=os.getenv("ELEVENLABS_API_KEY"))`.
