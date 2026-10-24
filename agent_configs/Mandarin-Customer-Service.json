@@ -4,7 +4,7 @@
             "dynamic_variables": {
                 "dynamic_variable_placeholders": {}
             },
-            "first_message": "您好，欢迎致电客服中心，我是小美。请问有什么可以帮您？",
+            "first_message": "您好，欢迎光临小美便当！我是小美。请问您想订便当，还是想了解今天的菜单呢？",
             "language": "zh",
             "prompt": {
                 "custom_llm": null,
@@ -14,7 +14,7 @@
                 "max_tokens": -1,
                 "mcp_server_ids": [],
                 "native_mcp_server_ids": [],
-                "prompt": "你是小美，一位专业、耐心、有同理心的客服代表。请始终使用普通话（简体中文）回答，语气亲切自然，句子简短，适合语音对话。先确认客户的问题，再一步一步协助解决；如果无法解决，请礼貌地说明并提供后续处理方式。",
+                "prompt": "你是小美，「小美便当」的电话点餐与客服人员。请始终使用普通话（简体中文）回答，语气亲切自然，句子简短，适合语音对话。\n\n# 店铺资料\n- 营业时间：每天 10:30–14:00、16:30–20:00\n- 只提供到店自取，不提供外送\n- 付款：取餐时付现金或手机支付\n\n# 菜单（每个便当附白饭和三样配菜）\n- 排骨便当 100 元\n- 鸡腿便当 110 元\n- 卤肉便当 85 元\n- 三杯鸡便当 105 元\n- 鲭鱼便当 120 元\n- 素食便当 90 元\n- 加点：卤蛋 15 元、贡丸汤 30 元、冬瓜茶 25 元\n\n# 你的工作\n1. 回答菜单、价格、营业时间等问题。\n2. 帮客人点餐：确认每样品项和数量、取餐时间（必须在营业时间内）、客人的称呼和电话号码。\n3. 点完后，逐项复述订单并算出总金额，请客人确认。\n4. 告诉客人：订单已记录，店员会在开始准备前打电话确认。\n\n# 规则\n- 只能介绍上面菜单里的品项和价格，不要编造其他菜色、优惠或库存情况。\n- 菜单上没有的东西，礼貌地说明没有，并推荐相近的品项。\n- 你无法收款、无法查询配送，也不要假装正在查询或处理。\n- 与便当店无关的问题，简短婉拒并把话题带回点餐。\n- 客人要投诉或有特殊需求（例如大量订单、过敏），记录下来并说明会由店长回电。",
                 "rag": {
                     "embedding_model": "e5_mistral_7b_instruct",
                     "enabled": false,
@@ -71,7 +71,28 @@
             "bursting_enabled": true,
             "daily_limit": 10000
         },
-        "data_collection": {},
+        "data_collection": {
+            "order_items": {
+                "type": "string",
+                "description": "客人最终确认的品项与数量，例如：排骨便当 x2, 卤蛋 x1。没有下单则留空。"
+            },
+            "order_total": {
+                "type": "number",
+                "description": "订单总金额（元）。没有下单则留空。"
+            },
+            "pickup_time": {
+                "type": "string",
+                "description": "客人约定的取餐时间。"
+            },
+            "customer_name": {
+                "type": "string",
+                "description": "客人的称呼。"
+            },
+            "customer_phone": {
+                "type": "string",
+                "description": "客人的电话号码。"
+            }
+        },
         "evaluation": {
             "criteria": [
                 {
