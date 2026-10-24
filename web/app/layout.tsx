@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "小美便當",
-  description: "Taiwanese Mandarin bento-ordering voice agent",
+  title: "ElevenLabs Agents Demo",
+  description: "Taiwanese Mandarin voice and text agents",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

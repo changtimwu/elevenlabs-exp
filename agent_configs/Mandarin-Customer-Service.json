@@ -35,7 +35,10 @@
         "conversation": {
             "client_events": [
                 "audio",
-                "interruption"
+                "interruption",
+                "user_transcript",
+                "agent_response",
+                "agent_response_correction"
             ],
             "max_duration_seconds": 1800,
             "text_only": false

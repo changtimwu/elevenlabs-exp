@@ -43,19 +43,41 @@ export interface ConversationBarProps {
    * Callback when user sends a message
    */
   onSendMessage?: (message: string) => void
+
+  /**
+   * Text-only mode: no microphone or audio, the agent replies in text.
+   * Typing a message while disconnected starts the session.
+   */
+  textOnly?: boolean
+
+  /**
+   * Label shown in the waveform area while disconnected
+   */
+  label?: string
 }
 
 export const ConversationBar = React.forwardRef<
   HTMLDivElement,
   ConversationBarProps
->(({ agentId, className, waveformClassName, onSendMessage }, ref) => {
+>((props, ref) => {
+  const {
+    agentId,
+    className,
+    waveformClassName,
+    onSendMessage,
+    textOnly = false,
+    label = "Customer Support",
+  } = props
   const { status } = useConversationStatus()
   const { startSession, endSession, sendUserMessage, sendContextualUpdate } =
     useConversationControls()
   const { isMuted, setMuted } = useConversationInput()
-  const [keyboardOpen, setKeyboardOpen] = React.useState(false)
+  const [keyboardToggled, setKeyboardOpen] = React.useState(false)
+  const keyboardOpen = textOnly || keyboardToggled
   const [textInput, setTextInput] = React.useState("")
   const mediaStreamRef = React.useRef<MediaStream | null>(null)
+  // A message typed before the text session connected, sent once it is up
+  const pendingMessageRef = React.useRef<string | null>(null)
 
   const isConnected = status === "connected"
 
@@ -70,16 +92,27 @@ export const ConversationBar = React.forwardRef<
 
   const startConversation = React.useCallback(async () => {
     try {
+      if (textOnly) {
+        startSession({
+          agentId,
+          connectionType: "websocket",
+          textOnly: true,
+          stripAudioTags: true,
+        })
+        return
+      }
+
       await getMicStream()
 
       startSession({
         agentId,
         connectionType: "webrtc",
+        stripAudioTags: true,
       })
     } catch (error) {
       console.error("Error starting conversation:", error)
     }
-  }, [getMicStream, agentId, startSession])
+  }, [getMicStream, agentId, startSession, textOnly])
 
   const handleEndSession = React.useCallback(() => {
     endSession()
@@ -106,10 +139,45 @@ export const ConversationBar = React.forwardRef<
     if (!textInput.trim()) return
 
     const messageToSend = textInput
-    sendUserMessage(messageToSend)
+    if (isConnected) {
+      sendUserMessage(messageToSend)
+    } else if (textOnly) {
+      pendingMessageRef.current = messageToSend
+      if (status === "disconnected" || status === "error") startConversation()
+    } else {
+      return
+    }
     setTextInput("")
     onSendMessage?.(messageToSend)
-  }, [sendUserMessage, textInput, onSendMessage])
+  }, [
+    sendUserMessage,
+    textInput,
+    onSendMessage,
+    isConnected,
+    textOnly,
+    status,
+    startConversation,
+  ])
+
+  // Text mode needs no mic permission, so connect right away and let the
+  // agent's greeting arrive before the user types
+  const autoStartedRef = React.useRef(false)
+  React.useEffect(() => {
+    if (!textOnly || autoStartedRef.current || status !== "disconnected") return
+    // Deferred so React Strict Mode's mount/unmount/mount only connects once
+    const timer = setTimeout(() => {
+      autoStartedRef.current = true
+      startConversation()
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [textOnly, status, startConversation])
+
+  React.useEffect(() => {
+    if (isConnected && pendingMessageRef.current) {
+      sendUserMessage(pendingMessageRef.current)
+      pendingMessageRef.current = null
+    }
+  }, [isConnected, sendUserMessage])
 
   const handleTextChange = React.useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -171,7 +239,7 @@ export const ConversationBar = React.forwardRef<
                             ? "idle"
                             : "active"
                         }
-                        active={isConnected && !isMuted}
+                        active={isConnected && !isMuted && !textOnly}
                         processing={status === "connecting"}
                         barWidth={3}
                         barGap={1}
@@ -184,14 +252,18 @@ export const ConversationBar = React.forwardRef<
                         mode="static"
                         className={cn(
                           "h-full w-full transition-opacity duration-300",
-                          (status === "disconnected" || status === "error") &&
+                          (status === "disconnected" ||
+                            status === "error" ||
+                            textOnly) &&
                             "opacity-0"
                         )}
                       />
-                      {(status === "disconnected" || status === "error") && (
+                      {(status === "disconnected" ||
+                        status === "error" ||
+                        textOnly) && (
                         <div className="absolute inset-0 flex items-center justify-center">
                           <span className="text-foreground/50 text-[10px] font-medium">
-                            Customer Support
+                            {label}
                           </span>
                         </div>
                       )}
@@ -200,42 +272,49 @@ export const ConversationBar = React.forwardRef<
                 </div>
               </div>
               <div className="flex items-center">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={toggleMute}
-                  aria-pressed={isMuted}
-                  className={cn(isMuted ? "bg-foreground/5" : "")}
-                  disabled={!isConnected}
-                >
-                  {isMuted ? <MicOff /> : <Mic />}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setKeyboardOpen((v) => !v)}
-                  aria-pressed={keyboardOpen}
-                  className="relative"
-                  disabled={!isConnected}
-                >
-                  <Keyboard
-                    className={
-                      "h-5 w-5 transform-gpu transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] " +
-                      (keyboardOpen
-                        ? "scale-75 opacity-0"
-                        : "scale-100 opacity-100")
-                    }
-                  />
-                  <ChevronDown
-                    className={
-                      "absolute inset-0 m-auto h-5 w-5 transform-gpu transition-all delay-50 duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] " +
-                      (keyboardOpen
-                        ? "scale-100 opacity-100"
-                        : "scale-75 opacity-0")
-                    }
-                  />
-                </Button>
-                <Separator orientation="vertical" className="mx-1 -my-2.5" />
+                {!textOnly && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={toggleMute}
+                      aria-pressed={isMuted}
+                      className={cn(isMuted ? "bg-foreground/5" : "")}
+                      disabled={!isConnected}
+                    >
+                      {isMuted ? <MicOff /> : <Mic />}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setKeyboardOpen((v) => !v)}
+                      aria-pressed={keyboardOpen}
+                      className="relative"
+                      disabled={!isConnected}
+                    >
+                      <Keyboard
+                        className={
+                          "h-5 w-5 transform-gpu transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] " +
+                          (keyboardOpen
+                            ? "scale-75 opacity-0"
+                            : "scale-100 opacity-100")
+                        }
+                      />
+                      <ChevronDown
+                        className={
+                          "absolute inset-0 m-auto h-5 w-5 transform-gpu transition-all delay-50 duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] " +
+                          (keyboardOpen
+                            ? "scale-100 opacity-100"
+                            : "scale-75 opacity-0")
+                        }
+                      />
+                    </Button>
+                    <Separator
+                      orientation="vertical"
+                      className="mx-1 -my-2.5"
+                    />
+                  </>
+                )}
                 <Button variant="ghost" size="icon" onClick={handleStartOrEnd}>
                   {isConnected || status === "connecting" ? (
                     <XIcon className="h-5 w-5" />
@@ -260,13 +339,13 @@ export const ConversationBar = React.forwardRef<
                 onKeyDown={handleKeyDown}
                 placeholder="Enter your message..."
                 className="min-h-[100px] resize-none border-0 pr-12 shadow-none focus-visible:ring-0"
-                disabled={!isConnected}
+                disabled={!isConnected && !textOnly}
               />
               <Button
                 size="icon"
                 variant="ghost"
                 onClick={handleSendText}
-                disabled={!textInput.trim() || !isConnected}
+                disabled={!textInput.trim() || (!isConnected && !textOnly)}
                 className="absolute right-3 bottom-3 h-8 w-8"
               >
                 <ArrowUpIcon className="h-4 w-4" />

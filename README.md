@@ -158,31 +158,81 @@ elevenlabs voices get_shared --language zh --locale cmn-TW --page-size 20 \
 elevenlabs voices share --voice-id <voice_id> --public-user-id <public_owner_id> --new-name "<name>"
 ```
 
+## Agent: 安心醫院 AI 護理助理 (nurse pre-visit triage)
+
+A second agent, **Nurse Triage** (`agent_5201m5r1k3smekysmxwbrctby4cb`), shows what a
+voice agent can do in a hospital: a pre-visit symptom interview before an outpatient
+appointment at the fictional 「安心醫院」, in Taiwanese Mandarin / Traditional Chinese.
+It is a demo, not a medical device, and gives no medical advice.
+
+- **Voice:** **Ling - Steady, Calm and Grounded** (`Z8Aisvg1z70p27kGvkZZ`, cmn-TW).
+  Speech speed is 0.9 and the turn timeout 12 s, so slow or hesitant patients aren't
+  cut off.
+- **Interview:** confirms name and date of birth, then asks about the chief complaint.
+  For each symptom it covers onset, location, character, 0–10 severity, progression
+  and triggers. It also asks about associated symptoms, history, medications
+  (anticoagulants, blood-pressure drugs), allergies and home readings, then reads a
+  summary back for the patient to confirm.
+- **Patient-friendly style:** one question at a time. When a patient is unsure ("我記性
+  不好"), it rephrases or offers choices. It confirms what it heard and invites family
+  to help.
+- **Safety:** it says it is an AI, and never diagnoses or advises on medication. It
+  screens every patient for red flags, and always asks about stroke signs when there is
+  a headache or dizziness. On any red flag it stops the interview, tells the patient to
+  call 119 or go to the ER without driving, asks them to note when symptoms started,
+  and checks that they understood.
+- **Post-call data collection:** a structured intake record with `patient_name`,
+  `date_of_birth`, `chief_complaint`, `symptom_onset`, `severity_0_10`, `progression`,
+  `associated_symptoms`, `red_flags`, `medical_history`, `current_medications`,
+  `allergies`, `urgency` (emergency / urgent / routine) and `clinician_summary`.
+- **Evaluation criteria** graded on every call: red-flag screening, appropriate
+  escalation, no diagnosis, and patient-friendliness.
+
+Config: `agent_configs/Nurse-Triage.json`. Read a call's intake record with the same
+`elevenlabs agents conversations get … --query 'analysis.data_collection_results'`
+command shown above.
+
 ## Web UI
 
-`web/` is a custom front end for the agent, built with
+`web/` is a custom front end for both agents, built with
 [ElevenLabs UI](https://ui.elevenlabs.io/docs) (a shadcn/ui component registry) on
-Next.js. It uses the `voice-chat-03` block: an animated orb, a live text transcript of
-both sides, and a conversation bar to start/end the call, mute, or type instead of talk.
+Next.js. It is based on the `voice-chat-03` block: an animated orb, a live text
+transcript of both sides, and a conversation bar.
+
+The top bar switches **agent** (小美便當 / AI 護理助理) and **mode**:
+
+| Mode | Input | Output | Connection |
+| --- | --- | --- | --- |
+| 語音 (voice) | Speech, plus typing while on the call | Spoken reply + text transcript | WebRTC, needs mic permission |
+| 文字 (text) | Typing only, no mic | Text only, no audio | WebSocket, connects as soon as the mode opens |
+
+Text mode uses the SDK's `textOnly` session option, which the agents allow through
+`platform_settings.overrides.conversation_config_override.conversation.text_only`. Both
+agents also list `user_transcript` and `agent_response` in
+`conversation_config.conversation.client_events`; without those, the transcript stays
+empty.
 
 Requires Node.js 18+ (`brew install node`).
 
 ```sh
 cd web
-cp .env.example .env.local   # NEXT_PUBLIC_ELEVENLABS_AGENT_ID=agent_3601m5qfnf5pf1g8wg5jrwn64pdk
+cp .env.example .env.local   # NEXT_PUBLIC_BENTO_AGENT_ID / NEXT_PUBLIC_NURSE_AGENT_ID
 npm install
-npm run dev                  # open http://localhost:3000, click the phone button, allow the mic
+npm run dev                  # open http://localhost:3000
 ```
 
-The browser connects straight to the agent over WebRTC (`@elevenlabs/react`); no API
-key is exposed because the agent is public (auth disabled). For a private agent, add a
-server route that fetches a conversation token with your API key and pass it to
-`startSession` instead of the agent ID.
+The browser connects straight to the agents (`@elevenlabs/react`). No API key is
+exposed, because the agents are public (auth disabled). For a private agent, add a
+server route that fetches a conversation token with your API key, and pass it to
+`startSession` instead of the agent ID. Microphone access only works on `localhost` or
+HTTPS. To demo remotely, use `tailscale serve`, a tunnel, or a deployment.
 
 | Path | Purpose |
 | --- | --- |
-| `web/app/page.tsx` | Page header and layout |
-| `web/components/voice-chat.tsx` | Conversation state and transcript; strips audio tags like `[抱歉]` from displayed text |
+| `web/app/page.tsx` | Agent and mode switcher, page header |
+| `web/lib/agents.ts` | The agent list (IDs from env, names, labels, empty-state text) |
+| `web/components/voice-chat.tsx` | Conversation state and transcript (the transcript is kept after hanging up) |
+| `web/components/ui/conversation-bar.tsx` | Call controls; adds `textOnly` and `label` props to the upstream component, and strips audio tags like `[抱歉]` via `stripAudioTags` |
 | `web/components/ui/` | ElevenLabs UI / shadcn components, copied into the project and freely editable |
 
 Add more ElevenLabs UI components (run inside `web/`):

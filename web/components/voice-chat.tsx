@@ -24,34 +24,47 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
-const DEFAULT_AGENT_ID = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID!
-
 interface ChatMessage {
   role: "user" | "assistant"
   content: string
 }
 
-export function VoiceChat() {
+export interface VoiceChatProps {
+  agentId: string
+  /** Text-only mode: type to chat, the agent replies in text without audio */
+  textOnly?: boolean
+  /** Shown in the conversation bar while idle */
+  label?: string
+  emptyTitle?: string
+  emptyDescription?: string
+}
+
+export function VoiceChat(props: VoiceChatProps) {
   return (
     <ConversationProvider>
-      <VoiceChat03 />
+      <VoiceChat03 {...props} />
     </ConversationProvider>
   )
 }
 
-function VoiceChat03() {
+function VoiceChat03({
+  agentId,
+  textOnly = false,
+  label,
+  emptyTitle = "Start a conversation",
+  emptyDescription = "Tap the phone button or type a message",
+}: VoiceChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
 
+  // The transcript is kept after hanging up so it can still be read; the parent
+  // remounts this component (via `key`) to start fresh.
   useConversation({
-    onConnect: () => setMessages([]),
-    onDisconnect: () => setMessages([]),
     onMessage: (message) => {
       if (message.message) {
         const newMessage: ChatMessage = {
           role: message.source === "user" ? "user" : "assistant",
-          // Drop expressive audio tags like "[抱歉]" that eleven_v4 voices act out
-          content: message.message.replace(/\[[^\]]*\]\s*/g, ""),
+          content: message.message,
         }
         setMessages((prev) => [...prev, newMessage])
       }
@@ -67,8 +80,8 @@ function VoiceChat03() {
               {messages.length === 0 ? (
                 <ConversationEmptyState
                   icon={<Orb className="size-12" />}
-                  title="開始點餐"
-                  description="按下電話按鈕跟小美說話，或直接輸入文字"
+                  title={emptyTitle}
+                  description={emptyDescription}
                 />
               ) : (
                 messages.map((message, index) => {
@@ -90,21 +103,37 @@ function VoiceChat03() {
                         <div className="flex items-center gap-1">
                           <TooltipProvider>
                             <Tooltip>
-                              <TooltipTrigger render={<Button className={cn(
-                                                                              "text-muted-foreground hover:text-foreground relative size-9 p-1.5"
-                                                                            )} size="sm" type="button" variant="ghost" onClick={() => {
-                                                                              navigator.clipboard.writeText(
-                                                                                message.content
-                                                                              )
-                                                                              setCopiedIndex(index)
-                                                                              setTimeout(() => setCopiedIndex(null), 2000)
-                                                                            }} />}>{copiedIndex === index ? (
-                                                                              <CheckIcon className="size-4" />
-                                                                            ) : (
-                                                                              <CopyIcon className="size-4" />
-                                                                            )}<span className="sr-only">
-                                                                              {copiedIndex === index ? "Copied!" : "Copy"}
-                                                                            </span></TooltipTrigger>
+                              <TooltipTrigger
+                                render={
+                                  <Button
+                                    className={cn(
+                                      "text-muted-foreground hover:text-foreground relative size-9 p-1.5"
+                                    )}
+                                    size="sm"
+                                    type="button"
+                                    variant="ghost"
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(
+                                        message.content
+                                      )
+                                      setCopiedIndex(index)
+                                      setTimeout(
+                                        () => setCopiedIndex(null),
+                                        2000
+                                      )
+                                    }}
+                                  />
+                                }
+                              >
+                                {copiedIndex === index ? (
+                                  <CheckIcon className="size-4" />
+                                ) : (
+                                  <CopyIcon className="size-4" />
+                                )}
+                                <span className="sr-only">
+                                  {copiedIndex === index ? "Copied!" : "Copy"}
+                                </span>
+                              </TooltipTrigger>
                               <TooltipContent>
                                 <p>
                                   {copiedIndex === index ? "Copied!" : "Copy"}
@@ -124,7 +153,9 @@ function VoiceChat03() {
           <div className="absolute right-0 bottom-0 left-0 flex justify-center">
             <ConversationBar
               className="w-full max-w-2xl"
-              agentId={DEFAULT_AGENT_ID}
+              agentId={agentId}
+              textOnly={textOnly}
+              label={label}
               onSendMessage={(message) => {
                 const userMessage: ChatMessage = {
                   role: "user",
