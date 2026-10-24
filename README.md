@@ -85,17 +85,17 @@ elevenlabs models list --human
 
 Every command accepts `--help`; add `--dry-run` to validate a request without sending it.
 
-## Agent: 小美便当 (Mandarin bento-shop assistant)
+## Agent: 小美便當 (Taiwanese Mandarin bento-shop assistant)
 
 This folder is also an ElevenLabs agents project (created with `elevenlabs agents init`).
 It holds one conversational agent, **Mandarin Customer Service**
 (`agent_3601m5qfnf5pf1g8wg5jrwn64pdk`), built from the `customer-service` template:
 
-- Language `zh`; answers in Mandarin (Simplified Chinese) as 小美, who takes phone
-  orders and answers questions for the bento shop 「小美便当」
-- Greeting: 您好，欢迎光临小美便当！我是小美。请问您想订便当，还是想了解今天的菜单呢？
-- Voice: premade **Sarah** (`EXAVITQu4vr4xnSDxMaL`), verified for Chinese and usable on
-  the free plan
+- Language `zh`; answers in Taiwanese Mandarin (Traditional Chinese, Taiwanese wording)
+  as 小美, who takes phone orders and answers questions for the bento shop 「小美便當」
+- Greeting: 您好，歡迎光臨小美便當！我是小美。請問您要訂便當，還是想先看看今天的菜單呢？
+- Voice: **Shusita - Taiwanese Accent** (`iCrb0E1mQG2baVhfLIGF`), a young female
+  conversational voice from the ElevenLabs voice library (locale `cmn-TW`)
 
 ### Conversation logic
 
@@ -144,15 +144,18 @@ elevenlabs agents templates list
 elevenlabs agents add "My Agent" --template customer-service
 ```
 
-Using a library voice: on the free plan, voices from the ElevenLabs voice library
-can't be used through the API, so the agent uses a premade voice. On a paid plan you
-can switch to a native Mandarin voice such as "Kathy - Mandarin"
-(`GE494ib77Hxb5fJC33Ib`, already added to the account) by setting `voice_id` in the
-agent config and running `elevenlabs agents push`. Find other Mandarin voices with:
+Changing the voice: a library voice must first be added to your account, then set as
+`conversation_config.tts.voice_id` and pushed. On the free plan library voices work
+inside agents, but not with the plain text-to-speech API, and voice design
+(`text-to-voice`) needs a paid plan.
 
 ```sh
-elevenlabs voices get_shared --language zh --page-size 15 \
-  --query 'voices[].[voice_id,name,locale]' --format table
+# Find Taiwanese voices (ID, owner, name)
+elevenlabs voices get_shared --language zh --locale cmn-TW --page-size 20 \
+  --query 'voices[].[voice_id,public_owner_id,name]' --format table
+
+# Add one to your account
+elevenlabs voices share --voice-id <voice_id> --public-user-id <public_owner_id> --new-name "<name>"
 ```
 
 ## Web UI

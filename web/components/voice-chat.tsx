@@ -67,8 +67,8 @@ function VoiceChat03() {
               {messages.length === 0 ? (
                 <ConversationEmptyState
                   icon={<Orb className="size-12" />}
-                  title="Start a conversation"
-                  description="Tap the phone button or type a message"
+                  title="開始點餐"
+                  description="按下電話按鈕跟小美說話，或直接輸入文字"
                 />
               ) : (
                 messages.map((message, index) => {
