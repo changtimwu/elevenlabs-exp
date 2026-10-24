@@ -45,6 +45,46 @@ pip install elevenlabs python-dotenv
 python test_tts.py
 ```
 
+## CLI
+
+The same things can be done from the terminal with the
+[ElevenLabs CLI](https://elevenlabs.io/docs/eleven-agents/operate/cli).
+
+Install (macOS):
+
+```sh
+brew install elevenlabs/tap/elevenlabs
+```
+
+Other options: `npm install -g @elevenlabs/cli`, or Scoop on Windows (see the docs).
+
+Authenticate — either run the CLI from this folder (it reads `ELEVENLABS_API_KEY`
+from `.env`), or log in once so it works anywhere:
+
+```sh
+elevenlabs auth login     # opens a browser; stores credentials in the OS keychain
+elevenlabs auth status
+```
+
+Examples:
+
+```sh
+# List voices (ID and name)
+elevenlabs voices search --query 'voices[].[voice_id,name]' --format table
+
+# Text to speech, saved to a file
+elevenlabs text-to-speech convert \
+  --voice-id JBFqnCBsd6RMkjVDRZzb \
+  --model-id eleven_multilingual_v2 \
+  --text "Hello from the ElevenLabs CLI." \
+  -o cli_out.mp3
+
+# List available models as a table
+elevenlabs models list --human
+```
+
+Every command accepts `--help`; add `--dry-run` to validate a request without sending it.
+
 ## Notes
 
 - The key is passed explicitly via `ElevenLabs(api_key=os.getenv("ELEVENLABS_API_KEY"))`.
