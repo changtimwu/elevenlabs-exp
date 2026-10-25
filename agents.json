@@ -4,13 +4,37 @@
             "config": "agent_configs/Mandarin-Customer-Service.json",
             "id": "agent_3601m5qfnf5pf1g8wg5jrwn64pdk",
             "branch_id": "agtbrch_8701m5qfng2qes5aw4as15esj7gy",
-            "version_id": "agtvrsn_8601m5r2tpv7fwps90zh39se4t27"
+            "version_id": "agtvrsn_6401m5r3ke6aeqmam3y9n5nh7v9j"
         },
         {
             "config": "agent_configs/Health-Alert.json",
             "id": "agent_5201m5r1k3smekysmxwbrctby4cb",
             "branch_id": "agtbrch_5001m5r1k4rqemsvxjq5vgn4aws9",
-            "version_id": "agtvrsn_9601m5r2ts7ve80sk072mrterx03"
+            "version_id": "agtvrsn_0801m5r3kgj6f68874018n7nj1wd"
+        },
+        {
+            "config": "agent_configs/Mandarin-Customer-Service.realtime-mini.json",
+            "id": "agent_3001m5r3g4f5e35tp3b8fyzhzcny",
+            "branch_id": "agtbrch_0901m5r3g5hcesssatkbrtpea7qt",
+            "version_id": "agtvrsn_7901m5r3kjzdeknvcd0etyfet9wj"
+        },
+        {
+            "config": "agent_configs/Mandarin-Customer-Service.realtime-max.json",
+            "id": "agent_8001m5r3gfg2ea59p5960x321r10",
+            "branch_id": "agtbrch_4701m5r3ggg3f7vv49enq9zpb1mn",
+            "version_id": "agtvrsn_2201m5r3kn8qffqracw44t5rsntz"
+        },
+        {
+            "config": "agent_configs/Health-Alert.realtime-mini.json",
+            "id": "agent_5901m5r3gh0vfwdtpztzx5nqw5fe",
+            "branch_id": "agtbrch_0901m5r3gj3serybhhzx7pvdwqd4",
+            "version_id": "agtvrsn_8801m5r3kqk4e3gag0b8y409wftm"
+        },
+        {
+            "config": "agent_configs/Health-Alert.realtime-max.json",
+            "id": "agent_1801m5r3gjrqf53r97krdn8bh2de",
+            "branch_id": "agtbrch_9601m5r3gkqhectrfaps02arajwd",
+            "version_id": "agtvrsn_6301m5r3ksvyedmatgwz6r2efz66"
         }
     ]
 }

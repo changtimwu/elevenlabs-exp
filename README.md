@@ -196,6 +196,39 @@ Config: `agent_configs/Health-Alert.json`. Tools are managed like agents:
 elevenlabs tools push       # after editing tool_configs/*.json
 ```
 
+## Models: normal vs Realtime Mini / Max
+
+Each sample agent exists in three variants, so the models can be compared side by side:
+
+| Option | How it works | 小美便當 | 安心守護 |
+| --- | --- | --- | --- |
+| 一般 (normal) | Cascaded: `scribe_realtime` speech-to-text → `gemini-2.5-flash` → `eleven_v4_turbo` TTS | `agent_3601m5qfnf5pf1g8wg5jrwn64pdk` | `agent_5201m5r1k3smekysmxwbrctby4cb` |
+| Realtime Mini | Speech-to-speech `eleven_realtime_v1_mini` | `agent_3001m5r3g4f5e35tp3b8fyzhzcny` | `agent_5901m5r3gh0vfwdtpztzx5nqw5fe` |
+| Realtime Max | Speech-to-speech `eleven_realtime_v1_max` (reasoning and tool calls) | `agent_8001m5r3gfg2ea59p5960x321r10` | `agent_1801m5r3gjrqf53r97krdn8bh2de` |
+
+The Realtime model is selected with `conversation_config.realtime_model`. With it set,
+the agent ignores `agent.prompt.llm`, `tts.model_id` and `asr.provider`, but keeps the
+prompt, first message, voice, language, tools and turn settings. The field **can't be
+overridden per conversation**: the server drops it from the allowed overrides. So each
+model is a separate agent, and the web UI picks the agent ID at runtime. Users switch
+models on the page; no redeploy is needed.
+
+The variants are generated from the base configs, which are the only files to edit:
+
+```sh
+# after editing agent_configs/Mandarin-Customer-Service.json or Health-Alert.json
+python3 scripts/realtime_variants.py   # rewrites agent_configs/*.realtime-{mini,max}.json
+elevenlabs agents push                 # pushes all six agents
+```
+
+Notes:
+- Realtime models are voice-only, so the web UI's text mode always uses the normal
+  agent.
+- Client tools must be listed in `client_events` (`client_tool_call`). Without it, voice
+  sessions never receive tool calls; text-only sessions get them regardless.
+- Observed in testing: Realtime Max sometimes says "已經幫您叫救護車" a moment before
+  the tool call goes out. The normal model and Mini call the tool first.
+
 ## Web UI
 
 `web/` is a custom front end for both agents, built with
@@ -203,7 +236,7 @@ elevenlabs tools push       # after editing tool_configs/*.json
 Next.js. It is based on the `voice-chat-03` block: an animated orb, a live text
 transcript of both sides, and a conversation bar.
 
-The top bar switches **agent** (小美便當 / 安心守護) and **mode**:
+The top bar switches **agent** (小美便當 / 安心守護), **model** (一般 / Realtime Mini / Realtime Max, see above) and **mode**:
 
 | Mode | Input | Output | Connection |
 | --- | --- | --- | --- |
@@ -220,7 +253,7 @@ Requires Node.js 18+ (`brew install node`).
 
 ```sh
 cd web
-cp .env.example .env.local   # NEXT_PUBLIC_BENTO_AGENT_ID / NEXT_PUBLIC_ALERT_AGENT_ID
+cp .env.example .env.local   # agent IDs: NEXT_PUBLIC_{BENTO,ALERT}_AGENT_ID and _REALTIME_{MINI,MAX}_AGENT_ID
 npm install
 npm run dev                  # open http://localhost:3000
 ```

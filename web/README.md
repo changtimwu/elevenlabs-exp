@@ -7,12 +7,12 @@ to the ElevenLabs agent over WebRTC via `@elevenlabs/react`.
 ## Run
 
 ```sh
-cp .env.example .env.local   # sets NEXT_PUBLIC_BENTO_AGENT_ID / NEXT_PUBLIC_ALERT_AGENT_ID
+cp .env.example .env.local   # sets the six agent IDs (normal / Realtime Mini / Realtime Max per agent)
 npm install
 npm run dev                  # http://localhost:3000
 ```
 
-Switch agent (小美便當 / 安心守護) and mode (語音: voice + typing, spoken replies; 文字: text only, no mic or audio) from the top bar.
+Switch agent (小美便當 / 安心守護), model (一般 / Realtime Mini / Realtime Max; voice mode only) and mode (語音: voice + typing, spoken replies; 文字: text only, no mic or audio) from the top bar.
 
 No API key is needed in the browser because the agents are public (auth disabled).
 

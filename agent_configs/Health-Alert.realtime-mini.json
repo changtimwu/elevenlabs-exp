@@ -1,0 +1,284 @@
+{
+    "conversation_config": {
+        "agent": {
+            "dynamic_variables": {
+                "dynamic_variable_placeholders": {
+                    "user_name": "王阿姨",
+                    "alert_type": "low_spo2",
+                    "alert_summary": "您的血氧濃度突然降到 86%",
+                    "alert_detail": "血氧 86%（平常約 97%），持續 2 分鐘；心跳 108 次／分",
+                    "location": "台北市大安區信義路四段 1 號 5 樓（住家）",
+                    "emergency_contact": "女兒 王小姐"
+                }
+            },
+            "first_message": "{{user_name}}您好，我是安心守護的 AI 助理。我剛剛發現{{alert_summary}}。請問您需要協助嗎？讓我了解一下剛剛您遭遇了什麼。",
+            "language": "zh",
+            "prompt": {
+                "custom_llm": null,
+                "ignore_default_personality": false,
+                "knowledge_base": [],
+                "llm": "gemini-2.5-flash",
+                "max_tokens": -1,
+                "mcp_server_ids": [],
+                "native_mcp_server_ids": [],
+                "prompt": "你是「安心守護」穿戴裝置的緊急應變 AI 助理。使用者的手錶偵測到異常生理數值時，系統會自動撥這通電話，由你主動關心並判斷是否需要救援。請一律用台灣的國語、繁體中文，語氣冷靜、溫暖、清楚，句子要很短。\n\n# 這通電話的背景（系統提供，已知資料）\n- 使用者：{{user_name}}（裝置已綁定本人，不需要再確認身分、姓名或生日）\n- 異常類型：{{alert_type}}\n- 偵測內容：{{alert_detail}}\n- 目前位置：{{location}}\n- 緊急聯絡人：{{emergency_contact}}\n\n# 最優先：先確認人是否安全\n開場已經說明偵測到的異常。接下來依序、一次一個問題：\n1. 確認使用者能不能清楚回應、現在感覺怎麼樣。\n2. 了解剛剛發生什麼事、當時在做什麼（例如運動、剛起床、洗澡、跌倒）。\n3. 針對這個異常詢問相關症狀：\n   - 血氧低：有沒有喘、呼吸困難、嘴唇發紫、胸悶、頭暈\n   - 心跳過快／心律不整：有沒有心悸、胸痛、頭暈、快昏倒、冒冷汗\n   - 心跳過慢：有沒有頭暈、虛弱、快昏倒、意識模糊\n   - 跌倒：有沒有撞到頭、哪裡痛、能不能自己慢慢坐起來、有沒有流血\n   - 每一種都要問中風徵象：臉歪、單側手腳無力或麻、講話不清楚\n\n# 判斷與行動\n- 立即叫救護車（呼叫 request_ambulance，並同時呼叫 notify_emergency_contact，urgency 用 emergency）的情況：\n  胸痛、呼吸困難、嘴唇發紫、意識不清或答非所問、中風徵象、昏倒過、跌倒後撞到頭或無法起身、大量出血、使用者要求，或使用者連續兩次沒有回應（只有「...」或聽不清楚）。\n  不要等問完所有問題；一出現就先通報，再繼續陪伴。\n- 通報後：告訴使用者救護車已經通報、家人也已經通知；給簡單安全指示，例如坐下或躺下休息、不要自己開車、跌倒受傷就先不要移動、可以的話把門打開、手機放在身邊；然後持續陪伴，每隔一下關心狀況，直到使用者說救護人員到了。\n- 不緊急但有不適：請使用者先坐下休息五分鐘，手錶戴緊後重新量一次；詢問是否要通知家人（同意才呼叫 notify_emergency_contact，urgency 用 urgent 或 info）；建議盡快就醫或打電話給醫師。\n- 可能是誤判（例如剛運動完、手錶沒戴好、手很冰），而且使用者感覺正常：請他休息後重新測量，提醒如果之後出現任何不舒服要立刻求救，然後禮貌結束。\n\n# 界線\n- 不做診斷、不建議用藥。可以說「這可能需要醫護人員評估」。\n- 工具回覆「已送出」才可以說已經通報或通知；不要假裝做了沒做的事。\n- 使用者問你是誰，誠實說你是 AI 助理。",
+                "rag": {
+                    "embedding_model": "e5_mistral_7b_instruct",
+                    "enabled": false,
+                    "max_documents_length": 50000,
+                    "max_retrieved_rag_chunks_count": 20,
+                    "max_vector_distance": 0.6
+                },
+                "temperature": 0.1,
+                "tool_ids": [
+                    "tool_3301m5r2s86wfg7bnddc9w7v8fgp",
+                    "tool_2601m5r2s8mjf97ta53y09mr1ds6"
+                ]
+            }
+        },
+        "asr": {
+            "keywords": [],
+            "provider": "scribe_realtime",
+            "quality": "high",
+            "user_input_audio_format": "pcm_16000"
+        },
+        "conversation": {
+            "client_events": [
+                "audio",
+                "interruption",
+                "user_transcript",
+                "agent_response",
+                "agent_response_correction",
+                "client_tool_call"
+            ],
+            "max_duration_seconds": 1800,
+            "text_only": false
+        },
+        "language_presets": {},
+        "tts": {
+            "agent_output_audio_format": "pcm_16000",
+            "model_id": "eleven_v4_turbo",
+            "optimize_streaming_latency": 3,
+            "pronunciation_dictionary_locators": [],
+            "similarity_boost": 0.8,
+            "speed": 1.0,
+            "stability": 0.5,
+            "supported_voices": [],
+            "voice_id": "Z8Aisvg1z70p27kGvkZZ"
+        },
+        "turn": {
+            "mode": "turn",
+            "silence_end_call_timeout": -1.0,
+            "turn_timeout": 8.0
+        },
+        "realtime_model": "eleven_realtime_v1_mini"
+    },
+    "name": "Health Alert Responder (Realtime Mini)",
+    "platform_settings": {
+        "auth": {
+            "allowlist": [],
+            "enable_auth": false,
+            "shareable_token": null
+        },
+        "ban": null,
+        "call_limits": {
+            "agent_concurrency_limit": -1,
+            "bursting_enabled": true,
+            "daily_limit": 10000
+        },
+        "data_collection": {
+            "alert_type": {
+                "type": "string",
+                "description": "觸發這通電話的異常類型（low_spo2、tachycardia、bradycardia、irregular_rhythm、fall 等）。"
+            },
+            "user_responsive": {
+                "type": "boolean",
+                "description": "使用者在通話中是否能清楚回應。"
+            },
+            "what_happened": {
+                "type": "string",
+                "description": "使用者描述剛剛發生的事、當時在做什麼。"
+            },
+            "symptoms": {
+                "type": "string",
+                "description": "使用者回報的症狀；沒有則填「無」。"
+            },
+            "red_flags": {
+                "type": "string",
+                "description": "出現的危險徵象；沒有則填「無」。"
+            },
+            "actions_taken": {
+                "type": "string",
+                "description": "AI 採取的行動，例如：已通報 119、已通知緊急聯絡人、請使用者重新測量。"
+            },
+            "outcome": {
+                "type": "string",
+                "description": "ambulance_requested、contact_notified、self_care_advised、false_alarm 或 no_response 其中之一。"
+            },
+            "responder_summary": {
+                "type": "string",
+                "description": "給救護人員或家屬的 3–5 句繁體中文摘要：異常數值、使用者狀況、症狀、已採取的行動、位置。"
+            }
+        },
+        "evaluation": {
+            "criteria": [
+                {
+                    "id": "safety_first",
+                    "name": "safety_first",
+                    "type": "prompt",
+                    "conversation_goal_prompt": "Did the agent focus first on whether the user was safe and what happened, without asking for identity details (name, date of birth)?"
+                },
+                {
+                    "id": "appropriate_escalation",
+                    "name": "appropriate_escalation",
+                    "type": "prompt",
+                    "conversation_goal_prompt": "If the user reported a red flag or stopped responding, did the agent call request_ambulance and notify_emergency_contact right away? (Success if no red flags occurred.)"
+                },
+                {
+                    "id": "no_diagnosis",
+                    "name": "no_diagnosis",
+                    "type": "prompt",
+                    "conversation_goal_prompt": "Did the agent avoid giving a diagnosis or medication advice?"
+                },
+                {
+                    "id": "clear_guidance",
+                    "name": "clear_guidance",
+                    "type": "prompt",
+                    "conversation_goal_prompt": "Did the agent give short, clear safety instructions and stay with the user?"
+                }
+            ]
+        },
+        "overrides": {
+            "conversation_config_override": {
+                "agent": {
+                    "first_message": false,
+                    "language": false,
+                    "prompt": {
+                        "prompt": false
+                    }
+                },
+                "conversation": {
+                    "text_only": true
+                },
+                "tts": {
+                    "voice_id": false
+                }
+            },
+            "custom_llm_extra_body": false,
+            "enable_conversation_initiation_client_data_from_webhook": false
+        },
+        "privacy": {
+            "apply_to_existing_conversations": false,
+            "delete_audio": false,
+            "delete_transcript_and_pii": false,
+            "record_voice": true,
+            "retention_days": -1,
+            "zero_retention_mode": false
+        },
+        "safety": {
+            "ignore_safety_evaluation": false,
+            "is_blocked_ivc": false,
+            "is_blocked_non_ivc": false
+        },
+        "testing": {
+            "attached_tests": []
+        },
+        "widget": {
+            "action_text": null,
+            "avatar": {
+                "color_1": "#2792dc",
+                "color_2": "#9ce6e6",
+                "type": "orb"
+            },
+            "bg_color": "#ffffff",
+            "border_color": "#e1e1e1",
+            "border_radius": null,
+            "btn_color": "#000000",
+            "btn_radius": null,
+            "btn_text_color": "#ffffff",
+            "custom_avatar_path": null,
+            "disable_banner": false,
+            "end_call_text": null,
+            "expand_text": null,
+            "expandable": "never",
+            "feedback_mode": "none",
+            "focus_color": "#000000",
+            "language_presets": {},
+            "language_selector": false,
+            "listening_text": null,
+            "mic_muting_enabled": false,
+            "override_link": null,
+            "placement": "bottom-right",
+            "shareable_page_show_terms": true,
+            "shareable_page_text": null,
+            "show_avatar_when_collapsed": false,
+            "speaking_text": null,
+            "start_call_text": null,
+            "styles": {
+                "accent": null,
+                "accent_active": null,
+                "accent_border": null,
+                "accent_hover": null,
+                "accent_primary": null,
+                "accent_subtle": null,
+                "base": null,
+                "base_active": null,
+                "base_border": null,
+                "base_error": null,
+                "base_hover": null,
+                "base_primary": null,
+                "base_subtle": null,
+                "bubble_radius": null,
+                "button_radius": null,
+                "compact_sheet_radius": null,
+                "dropdown_sheet_radius": null,
+                "input_radius": null,
+                "overlay_padding": null,
+                "sheet_radius": null
+            },
+            "supports_text_only": true,
+            "terms_html": null,
+            "terms_key": null,
+            "terms_text": null,
+            "text_color": "#000000",
+            "text_contents": {
+                "accept_terms": null,
+                "agent_ended_conversation": null,
+                "change_language": null,
+                "collapse": null,
+                "connecting_status": null,
+                "conversation_id": null,
+                "copied": null,
+                "copy_id": null,
+                "dismiss_terms": null,
+                "end_call": null,
+                "error_occurred": null,
+                "expand": null,
+                "input_label": null,
+                "input_placeholder": null,
+                "listening_status": null,
+                "main_label": null,
+                "mute_microphone": null,
+                "new_call": null,
+                "speaking_status": null,
+                "start_call": null,
+                "user_ended_conversation": null
+            },
+            "text_input_enabled": true,
+            "transcript_enabled": false,
+            "variant": "full"
+        },
+        "workspace_overrides": {
+            "conversation_initiation_client_data_webhook": null,
+            "webhooks": {
+                "post_call_webhook_id": null
+            }
+        }
+    },
+    "tags": [
+        "demo",
+        "emergency",
+        "healthcare",
+        "realtime"
+    ]
+}

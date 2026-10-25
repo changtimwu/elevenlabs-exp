@@ -96,7 +96,9 @@ function VoiceChat03({
       if (message.message) {
         const newMessage: ChatMessage = {
           role: message.source === "user" ? "user" : "assistant",
-          content: message.message,
+          // The SDK's stripAudioTags misses some tags in voice sessions (e.g.
+          // "[很抱歉]" from eleven_v4), so drop any remaining [...] here
+          content: message.message.replace(/\[[^\]]*\]\s*/g, ""),
         }
         setMessages((prev) => [...prev, newMessage])
       }

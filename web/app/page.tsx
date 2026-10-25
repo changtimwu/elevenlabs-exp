@@ -4,7 +4,7 @@ import { useState } from "react"
 import { KeyboardIcon, MicIcon, ShuffleIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { AGENTS } from "@/lib/agents"
+import { AGENTS, MODEL_OPTIONS, type ModelOption } from "@/lib/agents"
 import { HEALTH_ALERTS, randomAlert } from "@/lib/alerts"
 import { Button } from "@/components/ui/button"
 import { VoiceChat } from "@/components/voice-chat"
@@ -14,6 +14,9 @@ type Mode = "voice" | "text"
 export default function Home() {
   const [agentKey, setAgentKey] = useState(AGENTS[0].key)
   const [mode, setMode] = useState<Mode>("voice")
+  const [model, setModel] = useState<ModelOption>("normal")
+  // Realtime models are voice-only; text mode always uses the normal agent
+  const activeModel: ModelOption = mode === "text" ? "normal" : model
   // Picked in event handlers (not during render) so SSR and client agree
   const [alert, setAlert] = useState(HEALTH_ALERTS[0])
   const agent = AGENTS.find((a) => a.key === agentKey) ?? AGENTS[0]
@@ -61,12 +64,35 @@ export default function Home() {
             </Button>
           ))}
         </div>
+        <div
+          className="bg-muted flex w-full gap-1 rounded-lg p-1 sm:w-auto"
+          aria-label="模型"
+        >
+          {MODEL_OPTIONS.map((o) => (
+            <Button
+              key={o.key}
+              size="sm"
+              variant={activeModel === o.key ? "default" : "ghost"}
+              onClick={() => setModel(o.key)}
+              disabled={mode === "text" && o.key !== "normal"}
+              title={
+                mode === "text" && o.key !== "normal"
+                  ? "Realtime 模型只支援語音模式"
+                  : undefined
+              }
+              className="flex-1 sm:flex-none"
+            >
+              {o.label}
+            </Button>
+          ))}
+        </div>
       </nav>
       <header>
         <h1 className="text-2xl font-semibold">{agent.name}</h1>
         <p className="text-muted-foreground text-sm">
           {agent.subtitle} ·{" "}
-          {mode === "voice" ? "語音＋文字輸入，語音回覆" : "純文字對話"}
+          {mode === "voice" ? "語音＋文字輸入，語音回覆" : "純文字對話"} ·{" "}
+          模型：{MODEL_OPTIONS.find((o) => o.key === activeModel)?.label}
         </p>
       </header>
       {activeAlert && (
@@ -91,10 +117,10 @@ export default function Home() {
           </Button>
         </div>
       )}
-      {/* Remount on agent/mode/alert change so each starts a fresh session and transcript */}
+      {/* Remount on agent/mode/model/alert change so each starts a fresh session and transcript */}
       <VoiceChat
-        key={`${agent.key}-${mode}-${activeAlert?.variables.alert_type ?? ""}`}
-        agentId={agent.agentId}
+        key={`${agent.key}-${mode}-${activeModel}-${activeAlert?.variables.alert_type ?? ""}`}
+        agentId={agent.agentIds[activeModel]}
         textOnly={mode === "text"}
         label={agent.label}
         emptyTitle={agent.emptyTitle}

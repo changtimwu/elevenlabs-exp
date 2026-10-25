@@ -48,7 +48,8 @@
                 "interruption",
                 "user_transcript",
                 "agent_response",
-                "agent_response_correction"
+                "agent_response_correction",
+                "client_tool_call"
             ],
             "max_duration_seconds": 1800,
             "text_only": false
